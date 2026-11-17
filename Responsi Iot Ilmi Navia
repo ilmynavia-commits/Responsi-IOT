@@ -1,0 +1,67 @@
+
+#include "DHT.h"
+
+// Pengaturan pin sensor
+#define PIR_PIN 19
+#define DHT_PIN 4
+#define DHT_TYPE DHT22
+
+// Inisialisasi sensor DHT22
+DHT dht(DHT_PIN, DHT_TYPE);
+
+unsigned long waktuSebelumnya = 0;
+const unsigned long interval = 2000;
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(PIR_PIN, INPUT);
+
+  dht.begin();
+
+  Serial.println("================================");
+  Serial.println(" SISTEM MONITORING ESP32");
+  Serial.println(" PIR + DHT22");
+  Serial.println("================================");
+
+  delay(2000);
+}
+
+void loop() {
+
+  // Membaca sensor PIR
+  int gerakan = digitalRead(PIR_PIN);
+
+  if (gerakan == HIGH) {
+    Serial.println("Status Gerakan : TERDETEKSI!");
+  } else {
+    Serial.println("Status Gerakan : TIDAK ADA GERAKAN");
+  }
+
+  // Membaca DHT22 setiap 2 detik
+  if (millis() - waktuSebelumnya >= interval) {
+    waktuSebelumnya = millis();
+
+    float suhu = dht.readTemperature();
+    float kelembapan = dht.readHumidity();
+
+    Serial.println("--------------------------------");
+
+    if (isnan(suhu) || isnan(kelembapan)) {
+      Serial.println("Gagal membaca sensor DHT22!");
+    } else {
+      Serial.print("Suhu       : ");
+      Serial.print(suhu);
+      Serial.println(" °C");
+
+      Serial.print("Kelembapan : ");
+      Serial.print(kelembapan);
+      Serial.println(" %");
+    }
+
+    Serial.println("--------------------------------");
+  }
+
+  delay(200);
+}
+
